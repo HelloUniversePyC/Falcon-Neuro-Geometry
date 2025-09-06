@@ -86,9 +86,9 @@ For an example Dockerfile with annotations regarding the necessity and function 
 Please ensure that your submission runs locally before running remote evaluation. You can run the previously listed commands with your own Dockerfile (in place of sk_smoke). This should produce a log of nontrivial metrics (evaluation is run on locally available minival).
 
 To submit to the FALCON benchmark once your decoder Docker container is ready, follow the instructions on the [EvalAI submission tab]((https://eval.ai/web/challenges/challenge-page/2319/submission)). This will instruct you to first install EvalAI, then add your token, and finally push the submission. It should look something like:
-`
-evalai push mysubmission:latest --phase --phase few-shot-<test/minival>-2319 --private
-`
+```
+evalai push mysubmission:latest --phase few-shot-<test/minival>-2319 --private
+```
 (Note that you will not see these instruction unless you have first created a team to submit. The phase should contain a specific challenge identifier. You may need to refresh the page before instructions will appear.)
 
 Please note that all submissions are subject to a 6 hour time limit.

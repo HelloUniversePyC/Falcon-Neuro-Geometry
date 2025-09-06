@@ -1,6 +1,8 @@
 # NDT2 Sample Decoder Dockerfile
 
-FROM pytorch/pytorch:2.1.2-cuda11.8-cudnn8-devel
+# Jump to ubuntu jammy - focal EOL 4/2025
+FROM pytorch/pytorch:2.4.1-cuda12.1-cudnn9-devel
+
 RUN /bin/bash -c "python3 -m pip install falcon_challenge --upgrade"
 # ADD ./falcon_challenge falcon_challenge
 ENV PREDICTION_PATH "/submission/submission.csv"
@@ -55,7 +57,7 @@ ENV PHASE "test"
 
 # Make sure this matches the mounted data volume path. Generally leave as is.
 ENV EVAL_DATA_PATH "/dataset/evaluation_data"
-# ADD ./falcon_challenge falcon_challenge 
+# ADD ./falcon_challenge falcon_challenge
 
 # CMD specifies a default command to run when the container is launched.
 # It can be overridden with any cmd e.g. sudo docker run -it my_image /bin/bash
