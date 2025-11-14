@@ -672,6 +672,22 @@ class FalconEvaluator:
         trial_len_before_mask, trial_len_after_mask, frequencies = 880, 700, 158
 
         error_per_session = []
+        # JY: The `evaluate` call into this function appears to return a list of predictions,
+        # but the `evaluate_files` call appears to return a dict of predictions.
+        # This is not very safe but JY does not have access to a model to check this codepath
+        # Support both cases by forcing dict to list.
+        if isinstance(preds, dict):
+            list_preds = []
+            list_targets = []
+            list_eval_mask = []
+            for k in preds:
+                list_preds.append(preds[k])
+                list_targets.append(targets[k])
+                list_eval_mask.append(eval_mask[k])
+            preds = np.stack(list_preds)
+            targets = np.stack(list_targets)
+            eval_mask = np.stack(list_eval_mask)
+
         for sess_idx in range(len(preds)):
 
             prd, tgt, msk = np.array(preds[sess_idx]), np.array(targets[sess_idx]), np.array(eval_mask[sess_idx])
