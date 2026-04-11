@@ -1,0 +1,4 @@
+# Step 3 + FALCON H1 loading (install on top of your env)
+falcon-challenge>=1.0.2
+h5py>=3.0
+scipy>=1.5
