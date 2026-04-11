@@ -2,6 +2,20 @@
 
 This package contains core code for submitting decoders to the FALCON challenge. For a more general overview of FALCON, please see the [main website](https://snel-repo.github.io/falcon/).
 
+## H1 offline pipeline (branch `diya`)
+
+This branch adds an offline H1 path aligned with the official H1 data demo: spike binning, exponential smoothing, and notebook-style kinematic targets (see `notebooks/README.md` and `notebooks/h1.ipynb`).
+
+- Results and methodology: `step3_results/README.md` (tables match `summary.json` / `metrics_by_session.csv`; re-run Step 3 to refresh numbers).
+- Code: `step1_code/` (NWB loader + manifest), `step3_code/` (train-only PCA, Ridge, cross-session metrics, drift plot), with `run_step1_verify.py` and `run_step3.py`.
+
+```bash
+pip install -r step3_requirements.txt
+export FALCON_H1_ROOT=/path/to/your/h1/nwb/root
+python run_step1_verify.py   # optional: writes step1_results/dataset_manifest.json
+python run_step3.py
+```
+
 ## Installation
 Install `falcon_challenge` with:
 
