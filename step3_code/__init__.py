@@ -1,1 +1,1 @@
-"""Step 3: PCA (32-D) + Ridge baseline on real sessions (FALCON H1 or exported .npz)."""
+"""Step 3 helpers: config, I/O, session bundles. Linear decoder lives in ``models.linear_decoder``."""

@@ -70,7 +70,7 @@ Held-out (all CSV rows, unaggregated): mean R² primary ≈ −0.25, min −1.45
 
 | Proposal item | What the code does |
 |----------------|-------------------|
-| 32-dim PCA on train spikes | `PCA(n_components=32, whiten=True)` fit only on the training session’s smoothed, still-masked spikes (`step3_code/step3_pipeline.py`, `step3_code/config.py`). |
+| 32-dim PCA on train spikes | `PCA(n_components=32, whiten=True)` fit only on the training session’s smoothed, still-masked spikes (`models/linear_decoder.py`, `step3_code/config.py`). |
 | Project all sessions | Same `StandardScaler` + PCA transform for every session before Ridge. |
 | Ridge (latents → kinematics) | `RidgeCV` on 32-D latents → full kinematic vector (default 7 H1 dims after Step 1 preprocessing). |
 | Within-session decoding | 5-fold shuffled CV on the train session: refit Ridge each fold; PCA fixed. Primary score uses `variance_weighted` R² (standard in multi-output regression when dimensions have different scales). |
