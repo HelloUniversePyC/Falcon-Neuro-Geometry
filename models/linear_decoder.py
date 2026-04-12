@@ -1,4 +1,7 @@
-"""PCA (train-only) + Ridge, within-session CV, cross-session R², save artifacts."""
+"""PCA (train-only) + Ridge linear decoder: within-session CV, cross-session R², artifacts.
+
+Depends on ``step3_code`` (config, session bundles, I/O) at the repository root.
+"""
 from __future__ import annotations
 
 import json
@@ -245,7 +248,7 @@ def run_pipeline(sessions: List[SessionBundle], train_idx: int) -> None:
         color="tab:green",
         linestyle="--",
         linewidth=2,
-        label=f"Step 3: CV Ridge on 32-D PCA ({R2_MULTIOUTPUT_PRIMARY}) = {within_mean:.3f}",
+        label=f"Linear decoder: CV Ridge on 32-D PCA ({R2_MULTIOUTPUT_PRIMARY}) = {within_mean:.3f}",
     )
     ax.axhline(
         detail["train_in_sample_r2_primary"],
@@ -256,7 +259,7 @@ def run_pipeline(sessions: List[SessionBundle], train_idx: int) -> None:
     )
     ax.set_xlabel("Days from train session")
     ax.set_ylabel(f"R² ({R2_MULTIOUTPUT_PRIMARY})")
-    ax.set_title("Step 3: Ridge on 32-D PCA latents vs session distance (FALCON H1)")
+    ax.set_title("Linear decoder: Ridge on 32-D PCA latents vs session distance (FALCON H1)")
     ax.legend(loc="best", fontsize=8)
     ax.grid(True, alpha=0.3)
     fig.tight_layout()

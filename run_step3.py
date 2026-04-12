@@ -52,7 +52,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.data_dir is not None:
-        from step3_code.step3_pipeline import main_from_npz
+        from models.linear_decoder import main_from_npz
 
         main_from_npz(args.data_dir.resolve(), train_session_id=args.train_session_id)
         return
@@ -71,7 +71,7 @@ def main() -> None:
             "       python run_step3.py --data-dir /path/to/npz\n"
         )
 
-    from step3_code.step3_pipeline import main_from_falcon_h1
+    from models.linear_decoder import main_from_falcon_h1
 
     main_from_falcon_h1(h1, train_nwb_stem=args.train_nwb_stem)
 
