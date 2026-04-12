@@ -1,12 +1,4 @@
-# Step 3 results (real FALCON H1)
-
-This directory is a copy under `models/step3_results/` on branch `main` for browsing next to [`linear_decoder.py`](https://github.com/HelloUniversePyC/Falcon-Neuro-Geometry/blob/main/models/linear_decoder.py). The pipeline that writes these artifacts lives on branch `diya` (or your Raindrop checkout); `RESULTS_DIR` there defaults to repo-root `step3_results/`, not this path.
-
-Outputs from `python run_step3.py` with `FALCON_H1_ROOT` set (or `--data-dir` for exported `.nwb`-compatible `.npz`).
-
-## Latest saved results (FALCON H1)
-
-From the last `python run_step3.py` on dandiset 000954 (default train S0_set_1). Re-run Step 3 to refresh; numbers match `summary.json` / `metrics_by_session.csv`.
+# Step 3 results (FALCON H1)
 
 ### Within-session (5-fold CV on train session)
 
