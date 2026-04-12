@@ -1,7 +1,3 @@
-"""PCA (train-only) + Ridge linear decoder: within-session CV, cross-session R², artifacts.
-
-Depends on ``step3_code`` (config, session bundles, I/O) at the repository root.
-"""
 from __future__ import annotations
 
 import json
