@@ -1,103 +1,114 @@
-# FALCON Benchmark and Challenge
+# Improving Motor BCI Kinematics Decoding Accuracy in the Presence of Neuronal Drift
 
-This package contains core code for submitting decoders to the FALCON challenge. For a more general overview of FALCON, please see the [main website](https://snel-repo.github.io/falcon/).
+**NEURO 120 Final Project** | Harvard University, Spring 2026
 
-## Installation
-Install `falcon_challenge` with:
+Alliyah Steele, Rishab Jain, & Diya Sreedhar
 
-```bash
-pip install falcon-challenge
+## Overview
+
+This project investigates whether representational drift in the motor cortex can be explained as a geometric transformation of a stable low-dimensional neural manifold, and whether decoders that capture geometry (flow matching) are more robust to drift than standard linear decoders.
+
+We compare four decoder models on the [FALCON H1 dataset](https://dandiarchive.org/dandiset/000954) (Utah array recordings from human motor cortex, 176 channels, 13 sessions over ~40 days, 7 DoF kinematics):
+
+| Model | Input | Decoding |
+|-------|-------|----------|
+| **Linear (176-ch)** | Full 176-channel binned spikes | Ridge regression |
+| **Linear (PCA-32)** | 32-dim PCA latent | Ridge regression |
+| **FM-Vanilla** | 128-dim PCA latent | Flow matching (ODE integration) |
+| **FM-Raw** | Raw spikes via learned encoder | Flow matching (ODE integration) |
+| **FM-Ablated** | 128-dim PCA latent | Direct MLP (no flow matching) |
+
+## Key Results So Far
+
+- **Neural drift is real**: Median per-neuron coefficient of variation = 0.46 across sessions; pairwise session correlations decay at ~-0.005 r/day
+- **Population geometry is preserved**: PCA projections colored by reach direction show consistent directional clustering across all 13 sessions, consistent with [Gallego et al. (2020)](https://www.nature.com/articles/s41593-019-0555-4)
+- **Linear decoder**: Strong within-session decoding but sharp cross-day degradation
+- **FM-Vanilla**: Within-day r-squared = 0.46 (>2x FALCON linear baseline of 0.195), but also struggles across sessions
+
+## Repository Structure
+
+```
+.
+├── drift_characterization.ipynb   # Neural drift analysis (Rishab)
+├── figures/                       # Exported analysis figures
+│   ├── fig_drift_composite_3panel.png  # Main composite figure
+│   ├── fig_heatmap.png
+│   ├── fig_corr_matrix.png
+│   ├── fig_pca_directions.png
+│   └── ...
+├── models/
+│   ├── fm_decoder.ipynb           # Flow matching decoder (Alliyah)
+│   ├── linear_decoder.py          # Linear decoder (Diya)
+│   └── step3_results/             # Linear decoder evaluation outputs
+├── falcon_challenge/              # FALCON benchmark utilities
+│   ├── config.py                  # Task configs, session mappings
+│   ├── dataloaders.py             # NWB loading, spike binning
+│   └── interface.py               # Decoder interface spec
+├── data_demos/                    # Dataset exploration notebooks
+├── decoder_demos/                 # FALCON baseline decoders
+└── data/                          # Downloaded NWB files (not tracked)
 ```
 
-To create Docker containers for submission, you must have Docker installed.
-See, e.g. https://docs.docker.com/desktop/install/linux-install/.
+## Setup
 
-## Getting started
+### Requirements
 
-### Data downloading
-The FALCON datasets are available on DANDI ([H1](https://dandiarchive.org/dandiset/000954?search=falcon&pos=3), [H2](https://dandiarchive.org/dandiset/000950?search=falcon&pos=4), [M1](https://dandiarchive.org/dandiset/000941?search=falcon&pos=1), [M2](https://dandiarchive.org/dandiset/000953?search=falcon&pos=2), [B1](https://dandiarchive.org/dandiset/001046)). H1 and H2 are human intractorical brain-computer interface (iBCI) datasets, M1 and M2 are monkey iBCI datasets, and B1 is a songbird iBCI dataset. You can download them individually by going to their DANDI pages to find their respective DANDI download commands, or you can run `./download_falcon_datasets.sh` from project root.
-
-Data from each dataset is broken down as follows:
-
-- Held-in
-    - Data from the first several recording sessions.
-    - All non-evaluation data is released and split into calibration (large portion) and minival (small portion) sets.
-    - Held-in calibration data is intended to train decoders from scratch.
-    - Minival data enables validation of held-in decoders and submission debugging.
-- Held-out:
-    - Data from the latter several recording sessions.
-    - A small portion of non-evaluation data is released for calibration.
-    - Held-out calibration data is intentionally small to discourage training decoders from scratch on this data and provides an opportunity for few-shot recalibration.
-
-Some of the sample code expects your data directory to be set up in `./data`. Specifically, the following hierarchy is expected:
-
-`data`
-- `h1`
-    - `held_in_calib`
-    - `held_out_calib`
-    - `minival` (Copy dandiset minival folder into this folder)
-- `h2`
-    - `held_in_calib`
-    - `held_out_calib`
-    - `minival` (Copy dandiset minival folder into this folder)
-- `m1`
-    - `sub-MonkeyL-held-in-calib`
-    - `sub-MonkeyL-held-out-calib`
-    - `minival` (Copy dandiset minival folder into this folder)
-- `m2`
-    - `held_in_calib`
-    - `held_out_calib`
-    - `minival` (Copy dandiset minival folder into this folder)
-<!-- - `b1`
-    - `held_in_calib`
-    - `held_out_calib`
-    - `minival` (Copy dandiset minival folder into this folder) -->
-
-Each of the lowest level dirs holds the data files (in Neurodata Without Borders (NWB) format). Data from some sessions is distributed across multiple NWB files. Some data from each file is allocated to calibration, minival, and evaluation splits as appropriate.
-
-### Code
-This codebase contains starter code for implementing your own method for the FALCON challenge.
-- The `falcon_challenge` folder contains the logic for the evaluator. Submitted solutions must conform to the interface specified in `falcon_challenge.interface`. During `reset`, `predict`, and `observe` methods, your approach has access to a new timestep of neural observations. To access and make use of trial timing signals, implement the `on_done` method. Only within-trial data will be considered for evaluation, but you are welcome to use data from the entire available time period.
-- In `data_demos`, we provide notebooks that survey each dataset released as part of this challenge.
-- In `decoder_demos`, we provide sample decoders and baselines that are formatted to be ready for submission to the challenge. To use them, see the comments in the header of each file ending in `_sample.py`. Your solutions should look similar once implemented! (Namely, you should have a `_decoder.py` file or class which conforms to `falcon_challenge.inferface` as well as a `_sample.py` file that is the entry point for running your decoder.)
-
-For example, you can prepare and evaluate a linear decoder by running:
 ```bash
-python decoder_demos/sklearn_decoder.py --training_dir data/000954/sub-HumanPitt-held-in-calib/ --calibration_dir data/000954/sub-HumanPitt-held-out-calib/ --mode all --task h1
-# Should report: CV fit score, 0.26
-
-python decoder_demos/sklearn_sample.py --evaluation local --phase minival --split h1
-# Should report: Held In Mean of 0.195
+pip install falcon-challenge hydra-core pynwb dandi
+pip install torch scikit-learn matplotlib seaborn
 ```
 
-Note: During evaluation, data file names are hashed into unique tags. Submitted solutions receive data to decode along with tags indicating the file from which the data originates in the call to their `reset` function. These tags are the keys of the the `DATASET_HELDINOUT_MAP` dictionary in `falcon_challenge/evaluator.py`. Submissions that intend to condition decoding on the data file from which the data comes should make use of these tags. For an example, see `fit_many_decoders` and `reset` in `decoder_demos/sklearn_decoder.py`.
+### Data Download
+
+```bash
+cd data && dandi download https://dandiarchive.org/dandiset/000954/draft
+```
+
+This downloads ~102 MB of NWB files (27 calibration files across 13 sessions).
+
+### Running the Drift Characterization
+
+```bash
+jupyter notebook drift_characterization.ipynb
+```
+
+Run all cells top-to-bottom. Requires data in `data/000954/` (DANDI layout) or `data/h1/` (FALCON layout).
+
+### Running the Linear Decoder
+
+```bash
+python models/linear_decoder.py
+```
+
+### Running the Flow Matching Decoder
+
+Open `models/fm_decoder.ipynb` in Jupyter and run all cells.
+
+## References
+
+- Gallego, J. A., et al. (2020). Long-term stability of cortical population dynamics underlying consistent behavior. *Nature Neuroscience*.
+- Karpowicz, B. M., et al. (2024). Few-shot algorithms for consistent neural decoding (FALCON) benchmark. *bioRxiv*.
+- Wang, P., et al. (2025). Flow Matching for Few-Trial Neural Adaptation with Stable Latent Dynamics. *ICML 2025*.
+- Natraj, N., et al. (2025). Sampling representational plasticity of simple imagined movements across days. *Cell*.
+
+## Original FALCON Benchmark
+
+This repo is forked from the [FALCON benchmark repository](https://snel-repo.github.io/falcon/). See the original documentation below for challenge submission details.
+
+<details>
+<summary>FALCON Challenge Submission Instructions</summary>
 
 ### Docker Submission
-To interface with our challenge, your code will need to be packaged in a Docker container that is submitted to EvalAI. Try this process by building and running the provided `sklearn_sample.Dockerfile`, to confirm your setup works. Do this with the following commands (once Docker is installed)
 ```bash
-# Build
 docker build -t sk_smoke -f ./decoder_demos/sklearn_sample.Dockerfile .
 bash test_docker_local.sh --docker-name sk_smoke
 ```
 
-For an example Dockerfile with annotations regarding the necessity and function of each line, see `decoder_demos/template.Dockerfile`.
-
-## EvalAI Submission
-Please ensure that your submission runs locally before running remote evaluation. You can run the previously listed commands with your own Dockerfile (in place of sk_smoke). This should produce a log of nontrivial metrics (evaluation is run on locally available minival).
-
-To submit to the FALCON benchmark once your decoder Docker container is ready, follow the instructions on the [EvalAI submission tab]((https://eval.ai/web/challenges/challenge-page/2319/submission)). This will instruct you to first install EvalAI, then add your token, and finally push the submission. It should look something like:
-```
+### EvalAI Submission
+```bash
 evalai push mysubmission:latest --phase few-shot-<test/minival>-2319 --private
 ```
-(Note that you will not see these instruction unless you have first created a team to submit. The phase should contain a specific challenge identifier. You may need to refresh the page before instructions will appear.)
 
-Please note that all submissions are subject to a 6 hour time limit.
+See the [EvalAI submission tab](https://eval.ai/web/challenges/challenge-page/2319/submission) for full instructions.
 
-### Troubleshooting
-Docker:
-- If this is your first time with docker, note that `sudo` access is needed, or your user needs to be in the `docker` group. `docker info` should run without error.
-- While `sudo` is sufficient for local development, the EvalAI submission step will ultimately require your user to be able to run `docker` commands without `sudo`.
-- To do this, [add yourself to the `docker` group](https://docs.docker.com/engine/install/linux-postinstall/). Note you may [need vigr](https://askubuntu.com/questions/964040/usermod-says-account-doesnt-exist-but-adduser-says-it-does) to add your own user.
-
-EvalAI:
-- `pip install evalai` may fail on python 3.11, see: https://github.com/aio-libs/aiohttp/issues/6600. We recommend creating a separate env for submission in this case.
+</details>
