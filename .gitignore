@@ -9,3 +9,4 @@ build/
 # dist/
 # Ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints/
+*.pt
